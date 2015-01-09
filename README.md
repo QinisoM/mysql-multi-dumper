@@ -1,10 +1,9 @@
 # mysql-multi-dumper
-Web Interface for creating mysql multiple dump scripts.  Usefull for creating a smaller copy of a very large and busy database, e.g. Copying a production DB to a development
+Web Interface for creating mysql multiple dump scripts.  Useful for creating a smaller copy of a very large and busy database, e.g. Copying a production DB to a development environment.
 
 #System Requirements
 
 PHP     : 5.4.* <br/>
-MySql   : 5.6.10
 
 
 To get started run the following command:
