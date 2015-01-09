@@ -20,5 +20,13 @@ You must complete all the required fields, once done, the following files will b
 
 You can then run the created scripts, and the mysql dump and restore scripts will be placed in the sql
 
-Contributors
+#Contributors
 
+<ul class="task-list">
+  <li>
+    <a href="https://github.com/QinisoM">Qiniso M</a>
+  </li>
+  <li>
+    <a href="https://github.com/kgundula">KG</a>
+  </li>
+</ul>
