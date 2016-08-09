@@ -5,62 +5,67 @@
 * Each table will have its own set of dump files, split into pieces based on the row limit
 */
 
-header( 'Content-type:text/html;charset=utf-8');
+class ObHelper
+{
+	public static function callBack ($buffer)
+	{
+	  	echo '<script>' . $buffer . '</script>';
+		ob_flush();
+		flush();
+	}
+}
+
+header('Content-Type:text/html;charset=utf-8');
 $iStart = microtime(1);
 
-function ob_callback($buffer) {
-  	echo '<script>' . $buffer . '</script>';
-	ob_flush();
-	flush();
-}
-ob_callback('var oList=parent.document.getElementById("ProcessResults"),oSpinner=parent.document.getElementById("Spinner");');
+ObHelper::callBack('var oList=parent.document.getElementById("ProcessResults"),oSpinner=parent.document.getElementById("Spinner");');
 
-$aFilterOpts = array(
-	'DbHost' => array(
+$aFilterOpts = [
+	'DbHost' => [
 		'filter' => FILTER_SANITIZE_STRING,
 		'flags' => FILTER_VALIDATE_IP
-	),
+	],
 	'HostUser' => FILTER_SANITIZE_STRING,
 	'HostPass' => FILTER_SANITIZE_STRING,
-	'SourceDelay' => array(
+	'SourceDelay' => [
 		'filter' => FILTER_VALIDATE_INT,
 		'flags' => FILTER_REQUIRE_SCALAR
-	),
-	'DbName' => array(
+	],
+	'DbName' => [
 		'filter' => FILTER_SANITIZE_STRING,
 		'flags' => FILTER_REQUIRE_ARRAY
-	),
-	'DbGuest' => array(
+	],
+	'DbGuest' => [
 		'filter' => FILTER_SANITIZE_STRING,
 		'flags' => FILTER_VALIDATE_IP
-	),
+	],
 	'GuestUser' => FILTER_SANITIZE_STRING,
 	'GuestPass' => FILTER_SANITIZE_STRING,
-	'DestDelay' => array(
+	'DestDelay' => [
 		'filter' => FILTER_VALIDATE_INT,
 		'flags' => FILTER_REQUIRE_SCALAR
-	),
+	],
 	'OutputFolder' => FILTER_SANITIZE_STRING,
 	'FileType' => FILTER_SANITIZE_STRING,
-	'RowSplit' => array(
+	'RowSplit' => [
 		'filter' => FILTER_VALIDATE_INT,
 		'flags' => FILTER_REQUIRE_SCALAR
-	),
+	],
 	'LockTable' => FILTER_VALIDATE_INT,
-	'RowLimit' => array(
+	'RowLimit' => [
 		'filter' => FILTER_VALIDATE_INT,
 		'flags' => FILTER_REQUIRE_SCALAR
-	),
+	],
 	'Gzip' => FILTER_VALIDATE_INT,
-);
+];
 $aInput = filter_input_array(INPUT_POST, $aFilterOpts);
 $oOpt = (object)$aInput;
 
 // If no folder is supplied, use current working directory
 $oOpt->OutputFolder = !empty($oOpt->OutputFolder) ? str_replace('\\', '/', realpath($oOpt->OutputFolder)) : '';
 if (!is_dir($oOpt->OutputFolder) || !is_writeable($oOpt->OutputFolder)) {
-	ob_callback('oList.innerHTML +="Invalid OutputFolder: ' . $oOpt->OutputFolder . '<br />";');
-	ob_callback('oSpinner.style.visibility="hidden";');
+	ObHelper::callBack('oList.innerHTML +="Invalid OutputFolder: ' . $oOpt->OutputFolder . '<br />";');
+	ObHelper::callBack('oSpinner.style.visibility="hidden";');
 	die;
 }
 @mkdir($oOpt->OutputFolder . '/sql/', 777, true);
@@ -73,20 +78,20 @@ $oOpt->HostDelay = !empty($oOpt->HostDelay) ? (($oOpt->FileType=='bat') ? "\ntim
 $oOpt->GuestDelay = !empty($oOpt->GuestDelay) ? (($oOpt->FileType=='bat') ? "\ntimeout " . $oOpt->GuestDelay : "\nsleep " . $oOpt->GuestDelay) : '';
 if (!empty($oOpt->RowLimit) && !empty($oOpt->RowSplit)) {
 	if ($oOpt->RowSplit>$oOpt->RowLimit) {
-		ob_callback('oList.innerHTML +="Invalid Row option combination, RowSplit must be less than RowLimit<br />";');
-		ob_callback('oSpinner.style.visibility="hidden";');
+		ObHelper::callBack('oList.innerHTML +="Invalid Row option combination, RowSplit must be less than RowLimit<br />";');
+		ObHelper::callBack('oSpinner.style.visibility="hidden";');
 		die;
 	}
 }
 
 try{
 	$oConn = new PDO('mysql:host=' . $oOpt->DbHost . ';dbname=information_schema', $oOpt->HostUser, (!empty($oOpt->HostPass) ? $oOpt->HostPass : ''));
-	ob_callback('oList.innerHTML+="Connected to Host<br />";');
-	ob_callback('oList.innerHTML+="Fetching metadata<br />";');
+	ObHelper::callBack('oList.innerHTML+="Connected to Host<br />";');
+	ObHelper::callBack('oList.innerHTML+="Fetching metadata<br />";');
 } catch (Exception $e) {
-	ob_callback('oList.innerHTML+="Error connecting to the Host DB :(<br />";');
-	ob_callback('oList.innerHTML+="' . $e->getMessage() . '(<br />";');
-	ob_callback('oSpinner.style.visibility="hidden";');
+	ObHelper::callBack('oList.innerHTML+="Error connecting to the Host DB :(<br />";');
+	ObHelper::callBack('oList.innerHTML+="' . $e->getMessage() . '(<br />";');
+	ObHelper::callBack('oSpinner.style.visibility="hidden";');
 	die;
 }
 
@@ -107,8 +112,8 @@ if (!empty($oOpt->DbName)) {
 		$oOpt->DbName = array_unique($aTemp);
 	}
 }
-ob_callback('oList.innerHTML+="Database:' . implode(',', $oOpt->DbName) . '<br />";');
-ob_callback('oList.innerHTML+="Creating files<br />";');
+ObHelper::callBack('oList.innerHTML+="Database:' . implode(',', $oOpt->DbName) . '<br />";');
+ObHelper::callBack('oList.innerHTML+="Creating files<br />";');
 
 // Fatch table info from the info schema
 $aSchemata = [];
@@ -206,5 +211,5 @@ fwrite($oFile, "\n$echo done\n");
 fwrite($oFileR, "\n$echo done\n");
 fclose($oFile);
 fclose($oFileR);
-ob_callback('oList.innerHTML+="Completed in ' . number_format(microtime(1)-$iStart, 2) . ' seconds<br />";');
-ob_callback('oSpinner.style.visibility="hidden";');
+ObHelper::callBack('oList.innerHTML+="Completed in ' . number_format(microtime(1)-$iStart, 2) . ' seconds<br />";');
+ObHelper::callBack('oSpinner.style.visibility="hidden";');
