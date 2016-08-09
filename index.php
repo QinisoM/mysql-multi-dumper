@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
     <head>
         <meta charset="utf-8">
@@ -30,7 +31,7 @@
                                 </div>
                                 <div class="input-group" title="Enter Source DB Password" data-toggle="tooltip">
                                     <span class="input-group-addon"><i class="fa fa-key fa-fw fa-lg"></i></span>
-                                    <input type="text" class="form-control" id="source-pass" placeholder="Password" name="HostPass" />
+                                    <input type="password" class="form-control" id="source-pass" placeholder="Password" name="HostPass" />
                                 </div>
                                 <div class="input-group" title="Enter Source DB Delay in seconds. (Default 0)" data-toggle="tooltip">
                                     <span class="input-group-addon"><i class="fa fa-clock-o fa-fw fa-lg"></i></span>
@@ -53,7 +54,7 @@
                                 </div>
                                 <div class="input-group" title="Enter destination DB Password" data-toggle="tooltip">
                                     <span class="input-group-addon"><i class="fa fa-key fa-fw fa-lg"></i></span>
-                                    <input type="text" class="form-control" id="dest-pass" placeholder="Password" name="GuestPass" />
+                                    <input type="password" class="form-control" id="dest-pass" placeholder="Password" name="GuestPass" />
                                 </div>
                                 <div class="input-group" title="Enter destination DB Delay in seconds. (Default 0)" data-toggle="tooltip">
                                     <span class="input-group-addon"><i class="fa fa-clock-o fa-fw fa-lg"></i></span>
@@ -96,11 +97,11 @@
                                 </span>
                                 <input type="text" class="form-control" placeholder="Lock Tables" disabled="disabled" style="cursor:default" />
                             </div>
-                            <div class="input-group" title="Make Windows Batch Files" data-toggle="tooltip">
+                            <div class="input-group" title="Generate Windows Batch Files" data-toggle="tooltip">
                                 <span class="input-group-addon"><i class="fa fa-dot-circle-o fa-fw fa-lg" id="radio-file-type-batch"></i>
                                     <input type="radio" value="sh" id="opt-file-type-batch" style="display:none" checked="checked" />
                                 </span>
-                                <input type="text" class="form-control" placeholder="Windows Batch Files" readonly="readonly" style="cursor:default" />
+                                <input type="text" class="form-control" placeholder="Generate Windows Batch Files" readonly="readonly" style="cursor:default" />
                             </div>
                         </div>
                     </div>
@@ -114,13 +115,13 @@
                                 <span class="input-group-addon"><i class="fa fa-square-o fa-fw fa-lg" id="chk-compress-files"></i>
                                     <input type="checkbox" value="1" id="opt-compress-files" name="Gzip" style="display:none" />
                                 </span>
-                                <input type="text" class="form-control" placeholder="Compressed Files (GZip)" disabled="disabled" style="cursor:default;backgrounf-color:default" />
+                                <input type="text" class="form-control" placeholder="Compress Files (GZip)" disabled="disabled" style="cursor:default;backgrounf-color:default" />
                             </div>
-                            <div class="input-group" title="Make Linux Bash Files" data-toggle="tooltip">
+                            <div class="input-group" title="Generate Linux Bash Files" data-toggle="tooltip">
                                 <span class="input-group-addon"><i class="fa fa-circle-o fa-fw fa-lg" id="radio-file-type-bash"></i>
                                     <input type="radio" value="sh" id="opt-file-type-bash" name="FileType" style="display:none" />
                                 </span>
-                                <input type="text" class="form-control" placeholder="Make Linux Bash Files" readonly="readonly" disabled="disabled" style="cursor:default" />
+                                <input type="text" class="form-control" placeholder="Generate Linux Bash Files" readonly="readonly" disabled="disabled" style="cursor:default" />
                             </div>
                         </div>
                     </div>
