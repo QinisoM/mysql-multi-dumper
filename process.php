@@ -66,7 +66,7 @@ $oOpt->OutputFolder = !empty($oOpt->OutputFolder) ? str_replace('\\', '/', realp
 if (!is_dir($oOpt->OutputFolder) || !is_writeable($oOpt->OutputFolder)) {
 	ObHelper::callBack('oList.innerHTML +="Invalid OutputFolder: ' . $oOpt->OutputFolder . '<br />";');
 	ObHelper::callBack('oSpinner.style.visibility="hidden";');
-	die;
+	throw new Exception('Invalid Output Folder');
 }
 @mkdir($oOpt->OutputFolder . '/sql/', 777, true);
 
@@ -80,7 +80,7 @@ if (!empty($oOpt->RowLimit) && !empty($oOpt->RowSplit)) {
 	if ($oOpt->RowSplit>$oOpt->RowLimit) {
 		ObHelper::callBack('oList.innerHTML +="Invalid Row option combination, RowSplit must be less than RowLimit<br />";');
 		ObHelper::callBack('oSpinner.style.visibility="hidden";');
-		die;
+		throw new Exception('Invalid Row option combination, RowSplit must be less than RowLimit');
 	}
 }
 
@@ -92,7 +92,7 @@ try{
 	ObHelper::callBack('oList.innerHTML+="Error connecting to the Host DB :(<br />";');
 	ObHelper::callBack('oList.innerHTML+="' . $e->getMessage() . '(<br />";');
 	ObHelper::callBack('oSpinner.style.visibility="hidden";');
-	die;
+	throw new Exception('Error connecting to the Host DB');
 }
 
 $oFile = fopen($oOpt->OutputFolder . '/dump_commands.' . $oOpt->FileType, 'w+');
