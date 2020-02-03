@@ -18,7 +18,7 @@ try{
 }
 
 if ($oConn) {
-	// Fatch table info from the info schema
+	// Fetch table info from the info schema
 	$aDatabases = [];
 	foreach ($oConn->query("
 		SELECT table_schema `Database`
