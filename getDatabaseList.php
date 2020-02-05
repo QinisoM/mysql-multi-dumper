@@ -20,15 +20,24 @@ try{
 if ($oConn) {
 	// Fetch table info from the info schema
 	$aDatabases = [];
-	foreach ($oConn->query("
+    $oStm = $oConn->prepare("
 		SELECT table_schema `Database`
 		FROM information_schema.tables
 		WHERE table_schema" .
-		(!empty($oOpt->DbName)
-			? " IN ('" . implode("','", $oOpt->DbName) . "')"
-			: " NOT IN ('information_schema','performance_schema','mysql','util_replication')"
-		), PDO::FETCH_OBJ) as $oSchemata
-	) {
+        (!empty($oOpt->DbName)
+            ? " IN (?)"
+            : " NOT IN ('information_schema','performance_schema','mysql','util_replication')"
+        )
+    );
+
+    if (!empty($oOpt->DbName)) {
+        $oStm->execute([implode("','", $oOpt->DbName)]);
+    } else {
+        $oStm->execute();
+    }
+    $oRows = $oStm->fetchAll(PDO::FETCH_OBJ);
+
+	foreach ($oRows as $oSchemata) {
 		$aDatabases[] = $oSchemata->Database;
 	}
 	$aDatabases = array_unique($aDatabases);
