@@ -4,6 +4,7 @@
         <meta charset="utf-8">
         <title>MySQL MultiDump(er)</title>
         <link href="/assets/css/bootstrap.min.css" rel="stylesheet" />
+        <link href="/assets/css/chosen.min.css" rel="stylesheet" />
         <link href="/assets/font-awesome/css/font-awesome.min.css"rel="stylesheet" />
         <link href="/assets/css/style.css"rel="stylesheet" />
 		<link rel="shortcut icon" type="image/x-icon" href="http://www.qinisomdletshe.co.za/icon.png">
@@ -66,8 +67,17 @@
                 </div>
                 <div class="row">
                     <div class="col-md-6 col-md-offset-3">
-                        <div class="form-horizontal" title="Select databas(e)..." data-toggle="tooltip">
-                            <select id="source-db" style="width:100%" class="form-control" name="DbName[]" size="3" multiple="multiple" required="required"></select>
+                        <div class="form-horizontal" title="Select databas(e)" data-toggle="tooltip">
+                            <select id="source-db" style="width:100%" class="form-control" name="DbName[]" size="3" required="required"></select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 col-md-offset-3">
+                        <div class="form-horizontal" title="Select tables(e)" data-toggle="tooltip">
+                            <select id="source-table" style="width:100%" class="form-control" name="DbTables[]" size="6" multiple="multiple">
+                                <option value="" selected="selected">All Tables</option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -101,7 +111,7 @@
                                 <span class="input-group-addon"><i class="fa fa-dot-circle-o fa-fw fa-lg" id="radio-file-type-batch"></i>
                                     <input type="radio" value="sh" id="opt-file-type-batch" style="display:none" checked="checked" />
                                 </span>
-                                <input type="text" class="form-control" placeholder="Generate Windows Batch Files" readonly="readonly" style="cursor:default" />
+                                <input type="text" class="form-control" placeholder="Windows Batch Files" readonly="readonly" style="cursor:default" />
                             </div>
                         </div>
                     </div>
@@ -121,7 +131,7 @@
                                 <span class="input-group-addon"><i class="fa fa-circle-o fa-fw fa-lg" id="radio-file-type-bash"></i>
                                     <input type="radio" value="sh" id="opt-file-type-bash" name="FileType" style="display:none" />
                                 </span>
-                                <input type="text" class="form-control" placeholder="Generate Linux Bash Files" readonly="readonly" disabled="disabled" style="cursor:default" />
+                                <input type="text" class="form-control" placeholder="Linux Bash Files" readonly="readonly" disabled="disabled" style="cursor:default" />
                             </div>
                         </div>
                     </div>
@@ -158,6 +168,7 @@
             </div><!-- /.modal-dialog -->
         </div><!-- /.modal -->
         <script src="/assets/js/jQuery.js"></script>
+        <script src="/assets/js/chosen.jquery.min.js"></script>
         <script src="/assets/js/bootstrap.min.js"></script>
         <script>var isFormValid=true;
             $(function () {
@@ -167,7 +178,7 @@
                     if (!isFormValid) {
                         return false;
                     }
-                    $('#progressModal').modal({'backdrop':'static'});
+                    $('#progressModal').modal({'backdrop':'static'}).css({'cursor':'wait'});
                 });
 
                 $('#progressModal').on('hide.bs.modal', function(){
@@ -210,12 +221,29 @@
                 $('#source-host,#source-user,#source-pass').blur(function(){
                     var DbHost=$('#source-host').val(), HostUser=$('#source-user').val(), HostPass=$('#source-pass').val();
                     if (DbHost!='' && HostUser!='') {
+                        $('#source-db').css({cursor:'wait'});
                         $.post('/getDatabaseList.php', {DbHost:DbHost, HostUser:HostUser, HostPass:HostPass}, function(data){
                             theList = $('#source-db')[0];
                             theList.options.length=0;
                             $.each(data, function(i, v){
                                 theList.options[theList.options.length] = new Option(v, v);
                             });
+                          $('#source-db').css({cursor:'default'});
+                        });
+                    }
+                });
+
+                $('#source-db').on('click change', function() {
+                    var DbHost=$('#source-host').val(), HostUser=$('#source-user').val(), HostPass=$('#source-pass').val(), DbList=$(this).val();
+                    if (DbHost!='' && HostUser!='') {
+                        $('#source-table').css({cursor:'wait'});
+                        $.post('/getTableList.php', {DbHost:DbHost, HostUser:HostUser, HostPass:HostPass, DbList:DbList}, function(data){
+                            theList = $('#source-table')[0];
+                            theList.options.length=0;
+                            $.each(data, function(i, v){
+                                theList.options[theList.options.length] = new Option(v, v);
+                            });
+                          $('#source-table').css({cursor:'default'}).chosen();
                         });
                     }
                 });

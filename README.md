@@ -3,7 +3,7 @@ Web Interface for creating mysql multiple dump scripts.  Useful for creating a s
 
 #System Requirements
 
-PHP     : 5.4.* <br/>
+PHP     : 7.* <br/>
 
 
 To get started run the following command:

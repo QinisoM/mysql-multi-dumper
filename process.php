@@ -5,6 +5,10 @@
 * Each table will have its own set of dump files, split into pieces based on the row limit
 */
 
+/**
+ * Class ObHelper
+ * Helper for output Buffer with a js callback
+ */
 class ObHelper
 {
 	public static function callBack ($buffer)
@@ -35,6 +39,10 @@ $aFilterOpts = [
 		'filter' => FILTER_SANITIZE_STRING,
 		'flags' => FILTER_REQUIRE_ARRAY
 	],
+	'DbTables' => [
+		'filter' => FILTER_SANITIZE_STRING,
+		'flags' => FILTER_REQUIRE_ARRAY
+	],
 	'DbGuest' => [
 		'filter' => FILTER_SANITIZE_STRING,
 		'flags' => FILTER_VALIDATE_IP
@@ -58,12 +66,14 @@ $aFilterOpts = [
 	],
 	'Gzip' => FILTER_VALIDATE_INT,
 ];
-$aInput = filter_input_array(INPUT_POST, $aFilterOpts);
-$oOpt = (object)$aInput;
+$oOpt = (object)filter_input_array(INPUT_POST, $aFilterOpts);
 
 // If no folder is supplied, use current working directory
 $oOpt->OutputFolder = !empty($oOpt->OutputFolder) ? str_replace('\\', '/', realpath($oOpt->OutputFolder)) : '';
-if (!is_dir($oOpt->OutputFolder) || !is_writeable($oOpt->OutputFolder)) {
+if (
+    !is_dir($oOpt->OutputFolder) ||
+    !is_writeable($oOpt->OutputFolder)
+) {
 	ObHelper::callBack('oList.innerHTML +="Invalid OutputFolder: ' . $oOpt->OutputFolder . '<br />";');
 	ObHelper::callBack('oSpinner.style.visibility="hidden";');
 	throw new Exception('Invalid Output Folder');
@@ -71,9 +81,9 @@ if (!is_dir($oOpt->OutputFolder) || !is_writeable($oOpt->OutputFolder)) {
 @mkdir($oOpt->OutputFolder . '/sql/', 777, true);
 
 // Set Defaults
-$oOpt->RowSplit = !empty($oOpt->RowSplit) ? $oOpt->RowSplit : 1000;
-$oOpt->RowLimit = !empty($oOpt->RowLimit) ? $oOpt->RowLimit : 1000;
-$oOpt->FileType = !empty($oOpt->FileType) ? $oOpt->FileType :'bat';
+$oOpt->RowSplit = $oOpt->RowSplit ?? 1000;
+$oOpt->RowLimit = $oOpt->RowLimit ?? 1000;
+$oOpt->FileType = $oOpt->FileType ?? 'bat';
 $oOpt->HostDelay = !empty($oOpt->HostDelay) ? (($oOpt->FileType=='bat') ? "\ntimeout " . $oOpt->HostDelay : "\nsleep " . $oOpt->HostDelay) : '';
 $oOpt->GuestDelay = !empty($oOpt->GuestDelay) ? (($oOpt->FileType=='bat') ? "\ntimeout " . $oOpt->GuestDelay : "\nsleep " . $oOpt->GuestDelay) : '';
 if (!empty($oOpt->RowLimit) && !empty($oOpt->RowSplit)) {
@@ -84,7 +94,7 @@ if (!empty($oOpt->RowLimit) && !empty($oOpt->RowSplit)) {
 	}
 }
 
-try{
+try {
 	$oConn = new PDO('mysql:host=' . $oOpt->DbHost . ';dbname=information_schema', $oOpt->HostUser, (!empty($oOpt->HostPass) ? $oOpt->HostPass : ''));
 	ObHelper::callBack('oList.innerHTML+="Connected to Host<br />";');
 	ObHelper::callBack('oList.innerHTML+="Fetching metadata<br />";');
@@ -95,8 +105,11 @@ try{
 	throw new Exception('Error connecting to the Host DB');
 }
 
-$oFile = fopen($oOpt->OutputFolder . '/dump_commands.' . $oOpt->FileType, 'w+');
-$oFileR = fopen($oOpt->OutputFolder . '/restore_commands.' . $oOpt->FileType, 'w+');
+$fileName = $oOpt->OutputFolder . '/dump_commands.' . $oOpt->FileType;
+$fileNameR = $oOpt->OutputFolder . '/restore_commands.' . $oOpt->FileType;
+$oFile = fopen($fileName, 'w+');
+$oFileR = fopen($fileNameR, 'w+');
+
 if (!empty($oOpt->DbName)) {
 	if (is_string($oOpt->DbName)) {
 		$oOpt->DbName = explode(',', $oOpt->DbName);
@@ -118,15 +131,16 @@ ObHelper::callBack('oList.innerHTML+="Creating files<br />";');
 // Fatch table info from the info schema
 $aSchemata = [];
 $aDatabases = [];
-foreach ($oConn->query("
-	SELECT table_schema `Database`, table_name `Table`, table_rows `Rows`
-	FROM information_schema.tables
-	WHERE table_schema" .
-	(!empty($oOpt->DbName)
-		? " IN ('" . implode("','", $oOpt->DbName) . "')"
-		: " NOT IN ('information_schema','performance_schema','mysql')"
-	), PDO::FETCH_OBJ) as $oSchemata
-) {
+
+$aSQL = ['SELECT table_schema `Database`, table_name `Table`, table_rows `Rows` FROM information_schema.tables'];
+
+if (!empty($oOpt->DbTables)) {
+    $aSQL[] = "WHERE CONCAT(table_schema, '.', table_name) IN ('" . implode("','", $oOpt->DbTables) . "')";
+} else if (!empty($oOpt->DbName)) {
+    $aSQL[] = "WHERE table_schema IN ('" . implode(',', $oOpt->DbName) . "')";
+}
+
+foreach ($oConn->query(implode(' ', $aSQL), PDO::FETCH_OBJ) as $oSchemata) {
 	$aSchemata[$oSchemata->Database][$oSchemata->Table] = $oSchemata->Rows;
 	$aDatabases[] = $oSchemata->Database;
 }
@@ -211,5 +225,8 @@ fwrite($oFile, "\n$echo done\n");
 fwrite($oFileR, "\n$echo done\n");
 fclose($oFile);
 fclose($oFileR);
+chmod($fileName, 0755);
+chmod($fileNameR, 0755);
+
 ObHelper::callBack('oList.innerHTML+="Completed in ' . number_format(microtime(1)-$iStart, 2) . ' seconds<br />";');
-ObHelper::callBack('oSpinner.style.visibility="hidden";');
+ObHelper::callBack('oSpinner.style.visibility="hidden";parent.document.getElementById("progressModal").style.cursor="default";');
