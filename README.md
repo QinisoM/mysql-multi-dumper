@@ -1,5 +1,17 @@
-# mysql-multi-dumper
+# Mysql Multiple Dumper
+
+[![SymfonyInsight](https://insight.symfony.com/projects/46d81ece-eab4-46aa-b805-bb76f93bf565/mini.svg)](https://insight.symfony.com/projects/46d81ece-eab4-46aa-b805-bb76f93bf565)
+
 Web Interface for creating mysql multiple dump scripts.  Useful for creating a smaller copy of a very large and busy database, e.g. Copying a production DB to a development environment.
+
+#Features
+- Ability to select the database(s) you need
+- Ability to select the table(s) you need
+- Ability to specify how many rows to include
+- Ability to specify how many rows to include per dump file (useful for creating smaller dump files)
+- Ability to choose to generate either Windows Batch or linux Bash scripts
+- Option to add lock options to generates scripts
+- Option to compress(gzip) dump files to save space
 
 #System Requirements
 
