@@ -4,7 +4,7 @@
 
 Web Interface for creating mysql multiple dump scripts.  Useful for creating a smaller copy of a very large and busy database, e.g. Copying a production DB to a development environment.
 
-#Features
+# Features
 - Ability to select the database(s) you need
 - Ability to select the table(s) you need
 - Ability to specify how many rows to include
@@ -13,8 +13,7 @@ Web Interface for creating mysql multiple dump scripts.  Useful for creating a s
 - Option to add lock options to generates scripts
 - Option to compress(gzip) dump files to save space
 
-#System Requirements
-
+# System Requirements
 PHP     : 7.* <br/>
 
 
@@ -31,7 +30,7 @@ You must complete all the required fields, once done, the following files will b
 
 You can then run the created scripts, and the mysql dump and restore scripts will be placed in the sql
 
-#Contributors
+# Contributors
 
 <ul class="task-list">
   <li>

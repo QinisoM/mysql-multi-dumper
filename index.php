@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta charset="utf-8">
-        <title>MySQL MultiDump(er)</title>
+        <title>MySQL Multiple Dump(er)</title>
         <link href="/assets/css/bootstrap.min.css" rel="stylesheet" />
         <link href="/assets/css/chosen.min.css" rel="stylesheet" />
         <link href="/assets/font-awesome/css/font-awesome.min.css"rel="stylesheet" />
@@ -14,7 +14,7 @@
             <div class="container">
                 <div class="row">
                     <div class="col-md-6 col-md-offset-3">
-                        <h1 style="margin-bottom:15px">MySQL Multi-Dump(er)</h1>
+                        <h1 style="margin-bottom:15px">MySQL Multiple Dump(er)</h1>
                     </div>
                 </div>
                 <div class="row">
