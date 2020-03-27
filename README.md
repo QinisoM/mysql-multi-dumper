@@ -16,7 +16,6 @@ Web Interface for creating mysql multiple dump scripts.  Useful for creating a s
 # System Requirements
 PHP     : 7.* <br/>
 
-
 To get started run the following command:
   php -S "IP:Port", e.g. 'php -S "127.0.0.1:12345"'
 
@@ -29,6 +28,9 @@ You must complete all the required fields, once done, the following files will b
   - 'restore_commands.[ext]' (bat or sh)
 
 You can then run the created scripts, and the mysql dump and restore scripts will be placed in the sql
+
+# Find this project useful ? :heart:
+* Support it by clicking the :star: button on the upper right of this page. :v:
 
 # Contributors
 
