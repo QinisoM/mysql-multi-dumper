@@ -1,4 +1,5 @@
-<?php
+<?php declare(strict_types = 1);
+
 /**
 * Generate a series of mysqldump commands with the relevant options.
 * Allows you to take a H.U.G.E MySQLdump into smaller files that can be scripted chunk by chunk
@@ -11,7 +12,7 @@
  */
 class ObHelper
 {
-    public static function callBack ($buffer)
+    public static function callBack ($buffer): void
     {
         echo '<script>' . $buffer . '</script>';
         ob_flush();
