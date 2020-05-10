@@ -21,7 +21,7 @@ class ObHelper
 }
 
 header('Content-Type:text/html;charset=utf-8');
-$iStart = microtime(1);
+$iStart = microtime(true);
 
 ObHelper::callBack('var oList=parent.document.getElementById("ProcessResults"),oSpinner=parent.document.getElementById("Spinner");');
 
@@ -32,7 +32,7 @@ $aFilterOpts = [
     ],
     'HostUser' => FILTER_SANITIZE_STRING,
     'HostPass' => FILTER_SANITIZE_STRING,
-    'SourceDelay' => [
+    'HostDelay' => [
         'filter' => FILTER_VALIDATE_INT,
         'flags' => FILTER_REQUIRE_SCALAR
     ],
@@ -50,7 +50,7 @@ $aFilterOpts = [
     ],
     'GuestUser' => FILTER_SANITIZE_STRING,
     'GuestPass' => FILTER_SANITIZE_STRING,
-    'DestDelay' => [
+    'GuestDelay' => [
         'filter' => FILTER_VALIDATE_INT,
         'flags' => FILTER_REQUIRE_SCALAR
     ],
@@ -152,8 +152,8 @@ foreach ($oStm->fetchAll(PDO::FETCH_OBJ) as $oSchemata) {
 $aDatabases = array_unique($aDatabases);
 
 // Add the password argument if given
-$oOpt->HostPass  = !empty($oOpt->HostPass) ? ' -p' . $oOpt->HostPass : '';
-$oOpt->GuestPass = !empty($oOpt->GuestPass) ? ' -p' . $oOpt->GuestPass : '';
+$oOpt->HostPass  = !empty($oOpt->HostPass) ? ' --password=' . $oOpt->HostPass : '';
+$oOpt->GuestPass = !empty($oOpt->GuestPass) ? ' --password=' . $oOpt->GuestPass : '';
 $echo = ($oOpt->FileType=='bat') ? '@Echo' : 'echo';
 $newLine = ($oOpt->FileType=='bat') ? "@Echo:\n" : "\n";
 $iSeries = 0;
@@ -165,31 +165,32 @@ if ($oOpt->FileType!='bat') {
 }
 fwrite($oFile, "$echo " . (($oOpt->FileType=='bat') ? ' Off' : '') . "\n$newLine\n$echo Multiple MySQLdump script maker\n$newLine\n$echo Created by Qiniso S. Mdletshe \"<QinisoMdletsh@gmail.com>\"\n$newLine");
 fwrite($oFile, "$echo Creating dump files...\n");
-fwrite($oFile, "\nmysqldump -h" . $oOpt->DbHost . ' -u' . $oOpt->HostUser . $oOpt->HostPass . ' --databases ' . implode(' ', $aDatabases) . ' --no-data > ' . '"' . $oOpt->OutputFolder . "/sql/sql_dump_" . str_pad($iSeries, 10, '0', STR_PAD_LEFT) . '.sql"');
+fwrite($oFile, "\nmysqldump --column-statistics=0 --single-transaction --port=3306 --host=" . $oOpt->DbHost . ' --user=' . $oOpt->HostUser . $oOpt->HostPass . ' --databases --no-create-db ' . implode(' ', $aDatabases) . ' --no-data > ' . '"' . $oOpt->OutputFolder . "/sql/sql_dump_" . str_pad("$iSeries", 10, '0', STR_PAD_LEFT) . '.sql"');
 
 fwrite($oFileR, "$echo " . (($oOpt->FileType=='bat') ? ' Off' : '') . "\n$newLine\n$echo Multiple MySQL restore script maker\n$newLine\n$echo Created by Qiniso S. Mdletshe \"<QinisoMdletsh@gmail.com>\"\n$newLine");
 fwrite($oFileR, "$echo Restoring from files...\n");
-fwrite($oFileR, "\nmysql -h" . $oOpt->DbGuest . ' -u' . $oOpt->GuestUser . $oOpt->GuestPass . ' < "' . $oOpt->OutputFolder . '/sql/sql_dump_' . str_pad($iSeries, 10, '0', STR_PAD_LEFT) . '.sql"');
+fwrite($oFileR, "\nmysql --host=" . $oOpt->DbGuest . ' --user=' . $oOpt->GuestUser . $oOpt->GuestPass . ' < "' . $oOpt->OutputFolder . '/sql/sql_dump_' . str_pad("$iSeries", 10, '0', STR_PAD_LEFT) . '.sql"');
 $iSeries++;
 
 // Loop through DBs and Tables, and split if necessary
 foreach ($aSchemata as $dbName => $aTables) {
-    $sCommandDump = "\nmysqldump -h" . $oOpt->DbHost . ' -u' . $oOpt->HostUser . $oOpt->HostPass . ' ' . $dbName . (isset($oOpt->LockTables) ? ' --lock-tables' : '') . ' --extended-insert --disable-keys --tables --routines ';
+    $sCommandDump = "\nmysqldump --column-statistics=0 --single-transaction --port=3306 --host=" . $oOpt->DbHost . ' --user=' . $oOpt->HostUser . $oOpt->HostPass . ' ' . $dbName . (isset($oOpt->LockTables) ? ' --lock-tables' : '') . ' --extended-insert --disable-keys --tables ';
     if (isset($oOpt->Gzip)) {
-        $sCommandRestore = "\ngunzip < " . '"' . $oOpt->OutputFolder . '/sql/sql_dump_{num}.sql.gz" | mysql -h' . $oOpt->DbGuest . ' -u' . $oOpt->GuestUser . $oOpt->GuestPass . ' ' . $dbName;
+        $sCommandRestore = "\ngunzip < " . '"' . $oOpt->OutputFolder . '/sql/sql_dump_{num}.sql.gz" | mysql --host=' . $oOpt->DbGuest . ' --user=' . $oOpt->GuestUser . $oOpt->GuestPass . ' ' . $dbName;
     } else {
-        $sCommandRestore = "\nmysql -h" . $oOpt->DbGuest . ' -u' . $oOpt->GuestUser . $oOpt->GuestPass . ' ' . $dbName . ' < "' . $oOpt->OutputFolder . '/sql/sql_dump_{num}.sql"';
+        $sCommandRestore = "\nmysql --host=" . $oOpt->DbGuest . ' --user=' . $oOpt->GuestUser . $oOpt->GuestPass . ' ' . $dbName . ' < "' . $oOpt->OutputFolder . '/sql/sql_dump_{num}.sql"';
     }
 
+    $tableCreateInfo = '';
     foreach ($aTables as $sTableName => $iRows) {
-        $iTableBatchCount = ceil($iRows/$oOpt->RowLimit);
+        $iTableBatchCount = ($oOpt->RowLimit>0 && $oOpt->RowLimit > $iRows) ? 1 : ceil($iRows/$oOpt->RowSplit);
         if ($iTableBatchCount<2) {
             if (!empty($oOpt->Gzip)) {
-                fwrite($oFile, $sCommandDump . $sTableName . ' | gzip -9 > "' . $oOpt->OutputFolder . '/sql/sql_dump_' . str_pad($iSeries, 10, '0', STR_PAD_LEFT) . '.sql.gz"');
-                fwrite($oFileR, str_replace('{num}', str_pad($iSeries, 10, '0', STR_PAD_LEFT), $sCommandRestore));
+                fwrite($oFile, $sCommandDump . $tableCreateInfo . $sTableName . ' | gzip -9 > "' . $oOpt->OutputFolder . '/sql/sql_dump_' . str_pad("$iSeries", 10, '0', STR_PAD_LEFT) . '.sql.gz"');
+                fwrite($oFileR, str_replace('{num}', str_pad("$iSeries", 10, '0', STR_PAD_LEFT), $sCommandRestore));
             } else {
-                fwrite($oFile, $sCommandDump . $sTableName . ' > "' . $oOpt->OutputFolder . '/sql/sql_dump_' . str_pad($iSeries, 10, '0', STR_PAD_LEFT) . '.sql"');
-                fwrite($oFileR, str_replace('{num}', str_pad($iSeries, 10, '0', STR_PAD_LEFT), $sCommandRestore));
+                fwrite($oFile, $sCommandDump . $tableCreateInfo . $sTableName . ' > "' . $oOpt->OutputFolder . '/sql/sql_dump_' . str_pad("$iSeries", 10, '0', STR_PAD_LEFT) . '.sql"');
+                fwrite($oFileR, str_replace('{num}', str_pad("$iSeries", 10, '0', STR_PAD_LEFT), $sCommandRestore));
             }
 
             if (!empty($oOpt->HostDelay)) {
@@ -202,11 +203,11 @@ foreach ($aSchemata as $dbName => $aTables) {
             $iOffSet = 0;
             for ($i=1; $i<$iTableBatchCount; $i++) {
                 if (isset($oOpt->Gzip)) {
-                    fwrite($oFile, $sCommandDump . $sTableName . ' --opt -w "1 LIMIT ' . $oOpt->RowSplit . ' OFFSET ' . $iOffSet . '" | gzip -9 > "' . $oOpt->OutputFolder . '/sql/sql_dump_' . str_pad($iSeries, 10, '0', STR_PAD_LEFT) . '.sql.gz"');
-                    fwrite($oFileR, str_replace('{num}', str_pad($iSeries, 10, '0', STR_PAD_LEFT), $sCommandRestore));
+                    fwrite($oFile, $sCommandDump . $tableCreateInfo . $sTableName . ' --opt -w "1 LIMIT ' . $oOpt->RowSplit . ' OFFSET ' . $iOffSet . '" | gzip -9 > "' . $oOpt->OutputFolder . '/sql/sql_dump_' . str_pad("$iSeries", 10, '0', STR_PAD_LEFT) . '.sql.gz"');
+                    fwrite($oFileR, str_replace('{num}', str_pad("$iSeries", 10, '0', STR_PAD_LEFT), $sCommandRestore));
                 } else {
-                    fwrite($oFile, $sCommandDump . $sTableName . ' --opt -w "1 LIMIT ' . $oOpt->RowSplit . ' OFFSET ' . $iOffSet . '" > "' . $oOpt->OutputFolder . '/sql/sql_dump_' . str_pad($iSeries, 10, '0', STR_PAD_LEFT) . '.sql"');
-                    fwrite($oFileR, str_replace('{num}', str_pad($iSeries, 10, '0', STR_PAD_LEFT), $sCommandRestore));
+                    fwrite($oFile, $sCommandDump . $tableCreateInfo . $sTableName . ' --opt -w "1 LIMIT ' . $oOpt->RowSplit . ' OFFSET ' . $iOffSet . '" > "' . $oOpt->OutputFolder . '/sql/sql_dump_' . str_pad("$iSeries", 10, '0', STR_PAD_LEFT) . '.sql"');
+                    fwrite($oFileR, str_replace('{num}', str_pad("$iSeries", 10, '0', STR_PAD_LEFT), $sCommandRestore));
                 }
 
                 if (!empty($oOpt->HostDelay)) {
@@ -216,10 +217,11 @@ foreach ($aSchemata as $dbName => $aTables) {
                     fwrite($oFileR, $oOpt->HostDelay);
                 }
                 $iOffSet+= $oOpt->RowSplit;
-                if ($iOffSet>=$oOpt->RowLimit) {
+                if ($oOpt->RowLimit>0 && $iOffSet>=$oOpt->RowLimit) {
                     break;
                 }
                 $iSeries++;
+                $tableCreateInfo = ' --no-create-info ';
             }
         }
         $iSeries++;
@@ -233,5 +235,5 @@ fclose($oFileR);
 chmod($fileName, 0755);
 chmod($fileNameR, 0755);
 
-ObHelper::callBack('oList.innerHTML+="Completed in ' . number_format(microtime(1)-$iStart, 2) . ' seconds<br />";');
+ObHelper::callBack('oList.innerHTML+="Completed in ' . number_format(microtime(true)-$iStart, 2) . ' seconds<br />";');
 ObHelper::callBack('oSpinner.style.visibility="hidden";parent.document.getElementById("progressModal").style.cursor="default";');
