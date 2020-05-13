@@ -170,6 +170,7 @@ fwrite($oFile, "\nmysqldump --column-statistics=0 --single-transaction --port=33
 fwrite($oFileR, "$echo " . (($oOpt->FileType=='bat') ? ' Off' : '') . "\n$newLine\n$echo Multiple MySQL restore script maker\n$newLine\n$echo Created by Qiniso S. Mdletshe \"<QinisoMdletsh@gmail.com>\"\n$newLine");
 fwrite($oFileR, "$echo Restoring from files...\n");
 fwrite($oFileR, "\nmysql --host=" . $oOpt->DbGuest . ' --user=' . $oOpt->GuestUser . $oOpt->GuestPass . ' < "' . $oOpt->OutputFolder . '/sql/sql_dump_' . str_pad("$iSeries", 10, '0', STR_PAD_LEFT) . '.sql"');
+
 $iSeries++;
 
 // Loop through DBs and Tables, and split if necessary
