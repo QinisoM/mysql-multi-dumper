@@ -99,7 +99,7 @@
                         <div class="form-horizontal">
                             <div class="input-group" title="Maximum Rows per Table" data-toggle="tooltip">
                                 <span class="input-group-addon"><i class="fa fa-arrow-up fa-fw fa-lg"></i></span>
-                                <input type="text" class="form-control" id="row-limit" placeholder="Row Limit" required="required" name="RowLimit" value="1000" />
+                                <input type="text" class="form-control" id="row-limit" placeholder="Row Limit" name="RowLimit" value="1000" />
                             </div>
                             <div class="input-group" title="Check this to add 'LOCK TABLE'" data-toggle="tooltip">
                                 <span class="input-group-addon"><i class="fa fa-square-o fa-fw fa-lg" id="chk-lock-table"></i>
@@ -252,9 +252,9 @@
                     $('#err-msg').html('');
                     isFormValid = true;
                     if (
-                        $('#row-split').val()!='' &&
-                        $('#row-limit').val()!='' &&
-                        $('#row-split').val()>$('#row-limit').val()
+                        $('#row-split').val()>0 &&
+                        $('#row-limit').val()>0 &&
+                        $('#row-limit').val()>$('#row-split').val()
                     ) {
                         $('#err-msg').html('<div class="alert alert-danger" role="alert" style="margin-bottom:0">Invalid Row option combination, Row Split must be less than Row Limit</div>');
                         isFormValid=false;
